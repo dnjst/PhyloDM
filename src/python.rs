@@ -1,6 +1,7 @@
-use numpy::{PyArray1, PyArray2, PyArrayMethods, ToPyArray};
+use numpy::{PyArray1, PyArray2, PyArrayMethods};
 use pyo3::{Py, pyclass, pymethods, pymodule, PyResult, Python, types::PyModule, Bound};
 use pyo3::exceptions::PyValueError;
+use pyo3::types::PyModuleMethods;
 
 use crate::pdm::PDM as RustPhyloDM;
 use crate::tree::{Edge, NodeId, Taxon};
@@ -85,8 +86,8 @@ impl PhyloDM {
             return Err(PyValueError::new_err("Unable to compute distance matrix."));
         }
         let (_, array) = matrix.unwrap();
-        Ok(Python::with_gil(|py| {
-            return Py::from(array.to_pyarray_bound(py));
+        Ok(Python::attach(|py| {
+            PyArray2::from_array(py, &array).unbind()
         }))
     }
 
